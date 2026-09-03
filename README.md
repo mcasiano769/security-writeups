@@ -9,5 +9,6 @@ Hands-on writeups from my security learning path — TryHackMe rooms, CTFs, and 
 | Linux Fundamentals Part 1 | TryHackMe | Linux basics, filesystem, terminal | [writeups/tryhackme-linux-fundamentals-1.md](writeups/tryhackme-linux-fundamentals-1.md) |
 | Linux Fundamentals Part 2 | TryHackMe | Users, permissions, processes | [writeups/tryhackme-linux-fundamentals-2.md](writeups/tryhackme-linux-fundamentals-2.md) |
 | Linux Fundamentals Part 3 | TryHackMe | Networking, cron, package management | [writeups/tryhackme-linux-fundamentals-3.md](writeups/tryhackme-linux-fundamentals-3.md) |
+| Cowrie SSH Honeypot | Self-directed project | Deception tech, log analysis, SOC fundamentals | [writeups/cowrie-ssh-honeypot.md](writeups/cowrie-ssh-honeypot.md) |
 
 More added as rooms, CTFs, and tools get completed.
