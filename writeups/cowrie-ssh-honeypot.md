@@ -80,3 +80,9 @@ This one actually surprised me. I expected the `wget` command to just show up as
 
 - Deploy this same honeypot on a cloud VPS so it's catching genuine internet attackers instead of my own simulated sessions.
 - Forward its logs into the home Wazuh SIEM I'm building next, so I can practice real-time alerting and triage instead of manually reading a JSON file.
+
+## Tools/Commands Used
+- `docker`: containerized deployment of the Cowrie honeypot image
+- `cowrie/cowrie:latest`: the honeypot itself, emulates a real SSH server and Linux shell
+- `paramiko` (Python): scripted the simulated attack sessions against the honeypot
+- `docker run -d -p 2222:2222 --name cowrie-honeypot --restart unless-stopped cowrie/cowrie:latest`: deployed the honeypot listening on port 2222

@@ -1,6 +1,8 @@
 # Security Writeups
 
-Hands-on writeups from my security learning path: TryHackMe rooms, CTFs, and small tools built along the way. Part of my CompTIA Security+ → eJPT → OSCP progression.
+I'm a Technical Analyst 2 with 8-10 years in IT support, transitioning into security. I hold a bachelor's in Information Technology and an MBA in Organizational Management and HR, and I'm currently working through CompTIA Security+. This repo documents that transition: hands-on projects, TryHackMe rooms, and framework-mapped security audits, real proof-of-work rather than certifications alone.
+
+Part of my CompTIA Security+ → eJPT → OSCP progression.
 
 ## Writeups
 
@@ -18,5 +20,6 @@ More added as rooms, CTFs, and tools get completed.
 | System | Framework | Topics | Writeup |
 |---|---|---|---|
 | Personal MacBook Pro (T2 Linux host) | NIST CSF | Network exposure review, firewall/IPS posture, container network hardening | [writeups/hackintosh-security-audit.md](writeups/hackintosh-security-audit.md) |
+| Home Server (extreme-serv) | NIST CSF | Container exposure, SSH hardening, risk acceptance, control-effectiveness validation | [writeups/home-server-security-audit.md](writeups/home-server-security-audit.md) |
 
 More added as further home-lab systems are audited.

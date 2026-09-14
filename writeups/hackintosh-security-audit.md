@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Objective
 
 I conducted a full security audit of my personal MacBook Pro after setting up remote administrative access to it. The goal was to establish a real security baseline before trusting the machine with any ongoing remote access, rather than assuming it was safe by default.
 
@@ -17,7 +17,7 @@ Net result: three real findings closed, one systemic control gap closed, zero in
 
 ---
 
-## 2. Scope and Methodology
+## 2. Method
 
 **In scope:**
 - Full inventory of network-listening services on the host
@@ -87,9 +87,13 @@ Net result: three real findings closed, one systemic control gap closed, zero in
 
 ---
 
-## 4. Overall Risk Posture
+## 4. Remediation & Recommendations
 
-Prior to this audit, the host had two individually exposed services and no baseline automated defense (firewall or intrusion prevention) of any kind. All identified risk was local-network-scoped, never internet-facing, which was independently confirmed at the router level rather than assumed. Following remediation, the host has: no unnecessary listening services, all container-based services correctly scoped to their actual usage pattern, and both a firewall and intrusion-prevention system actively running. All findings were closed within the same audit session in which they were identified.
+**Remediation summary:** All three exposure findings and the systemic firewall/intrusion-prevention gap were closed within the same audit session. The unused, crash-looping remote desktop service was disabled outright. The self-hosted AI chat interface was rebound to localhost-only. `ufw` and `fail2ban` were both installed and enabled, with SSH restricted to the local subnet and a default-deny policy on everything else.
+
+**Recommendations going forward:**
+- Re-run this same listening-port and firewall-rule review periodically, since this audit caught services (the remote desktop service in particular) that were running without my own awareness. Asset visibility, not just fixing what's found, is the real long-term control.
+- No outstanding items remain open from this audit. Prior to this audit, the host had two individually exposed services and no baseline automated defense of any kind; following remediation, the host has no unnecessary listening services, all container-based services correctly scoped to their actual usage pattern, and both a firewall and intrusion-prevention system actively running.
 
 ---
 
