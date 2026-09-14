@@ -12,3 +12,11 @@ Hands-on writeups from my security learning path — TryHackMe rooms, CTFs, and 
 | Cowrie SSH Honeypot | Self-directed project | Deception tech, log analysis, SOC fundamentals | [writeups/cowrie-ssh-honeypot.md](writeups/cowrie-ssh-honeypot.md) |
 
 More added as rooms, CTFs, and tools get completed.
+
+## Security Audits (GRC-style)
+
+| System | Framework | Topics | Writeup |
+|---|---|---|---|
+| Personal MacBook Pro (T2 Linux host) | NIST CSF | Network exposure review, firewall/IPS posture, container network hardening | [writeups/hackintosh-security-audit.md](writeups/hackintosh-security-audit.md) |
+
+More added as further home-lab systems are audited.
