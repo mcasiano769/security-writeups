@@ -1,6 +1,6 @@
 # Security Writeups
 
-Hands-on writeups from my security learning path — TryHackMe rooms, CTFs, and small tools built along the way. Part of my CompTIA Security+ → eJPT → OSCP progression.
+Hands-on writeups from my security learning path: TryHackMe rooms, CTFs, and small tools built along the way. Part of my CompTIA Security+ → eJPT → OSCP progression.
 
 ## Writeups
 
