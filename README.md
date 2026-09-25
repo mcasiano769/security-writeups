@@ -12,6 +12,7 @@ Part of my CompTIA Security+ → eJPT → OSCP progression.
 | Linux Fundamentals Part 2 | TryHackMe | Users, permissions, processes | [writeups/tryhackme-linux-fundamentals-2.md](writeups/tryhackme-linux-fundamentals-2.md) |
 | Linux Fundamentals Part 3 | TryHackMe | Networking, cron, package management | [writeups/tryhackme-linux-fundamentals-3.md](writeups/tryhackme-linux-fundamentals-3.md) |
 | Cowrie SSH Honeypot | Self-directed project | Deception tech, log analysis, SOC fundamentals | [writeups/cowrie-ssh-honeypot.md](writeups/cowrie-ssh-honeypot.md) |
+| Blue | TryHackMe | Windows exploitation, SMB, MS17-010/EternalBlue, hash cracking | [writeups/tryhackme-blue.md](writeups/tryhackme-blue.md) |
 
 More added as rooms, CTFs, and tools get completed.
 
